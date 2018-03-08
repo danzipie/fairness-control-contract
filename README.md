@@ -1,5 +1,9 @@
 # fairness-control-contract
-Ethereum smart contract that establishes periodic and fair work shifts among a set of agents
+Ethereum smart contract that establishes fair active control shifts among a set of agents.
+The code is produced the results of this paper:
+
+P. Danzi, M. Angjelichinoski, Č. Stefanović, and P. Popovski, “Distributed proportional-fairness control in microgrids via blockchain smart contracts,” accepted at IEEE SmartGridComm 2017.
+https://arxiv.org/pdf/1705.01453.pdf
 
 The project is created using Truffle framework.
 
