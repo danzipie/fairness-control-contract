@@ -3,11 +3,11 @@ pragma solidity ^0.4.8;
 contract FairnessControl
 {
 
-    uint iterations;
-    uint totReceived;
+    uint public iterations;
+    uint public totReceived;
     mapping(address => uint) public balances;
-    address [] controllers;
-    uint [] states;
+    address [] public controllers;
+    uint [] public states;
     uint [] vals;
     uint found;
     uint minIdx;
@@ -16,26 +16,26 @@ contract FairnessControl
     event Execute(uint _rew);
     event PayReward(address _to, uint256 _value);
 
-    // init
-    function FairnessControl() {
+    // constructor
+    constructor () payable public {
         iterations = 0;
         totReceived = 0;
         found = 0;
         minIdx = 0;
     }
 
-    // receive weights
+    // sendWeight is used by DERs to send their weight
     function sendWeight() payable public returns (bool success) {
 
         ReceivedWeight(msg.value);
 
         if (msg.value > 0) {
-            balances[msg.sender] = msg.value; // save payment
+            balances[msg.sender] = msg.value;
             totReceived += msg.value;
             controllers.push(msg.sender); // save DER ID @TODO: verify if already exists
 
         } else
-            throw;
+            revert();
 
         return true;
 
@@ -45,20 +45,18 @@ contract FairnessControl
     function decideNextController() public returns (uint success) {
 
         uint i;
-
         uint minVal;
         minIdx = 0;
 
         if (found > 0) // check if contract is locked
-            throw;
+            revert();
 
         // safety check
         if (!(controllers.length > 0))
-            throw;
+            revert();
 
-        // find argmin @TODO: random... in principle! but the agents are picking randomly (in Wei)
+        // find argmin
         for (i=0; i<controllers.length; i++) {
-
             if (i==0) {
                 minVal = balances[controllers[i]];
                 minIdx = i;
@@ -80,9 +78,7 @@ contract FairnessControl
 
         // lock the contract
         found = 1;
-
         return success;
-
     }
 
     function reset() public returns (uint success) {
@@ -101,19 +97,12 @@ contract FairnessControl
 
     function payController() public returns (uint success) {
 
-        //uint256 reward = 0;
-
-        // compute reward
-        //for (var i=0; i<controllers.length; i++) {
-         //   reward += balances[controllers[i]];
-        //}
-
         Execute(minIdx);
 
         // pay controller with minimum
         //PayReward(controllers[minIdx], reward);
         if (!controllers[minIdx].send(this.balance))
-            throw;
+            revert();
 
         // clear structures for next round
         controllers.length = 0;
@@ -124,35 +113,15 @@ contract FairnessControl
         iterations++;
 
         // check if there is still something in the contract...
-
         return 1;
     }
 
-    // returns the value of global variable 'iterations'
-    function getIterations() returns (uint result) {
-        return iterations;
-    }
-
-    function getTotReceived() returns (uint result) {
-        return totReceived;
-    }
-
-    function getStates() returns (uint[] result) {
-        return states;
-    }
-
-    function getControllers() returns (address[] result) {
-        return controllers;
-    }
-
-    function printMapping() returns (uint [] v) {
+    function printMapping() public returns (uint [] v) {
         uint i = 0;
         for (i=0; i<controllers.length; i++) {
             vals.push(balances[controllers[i]]);
         }
         return vals;
     }
-
-
 
 }
